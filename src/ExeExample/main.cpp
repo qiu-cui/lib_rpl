@@ -1,0 +1,51 @@
+#include <rpl/event_stream.h>
+
+#include <cstdlib>
+#include <cmath>
+#include <iostream>
+#include <atomic>
+#include <thread>
+int main()
+{
+    rpl::event_stream<int> stream;
+    rpl::event_stream<int> stream2;
+
+    rpl::producer<int> producer = stream.events();
+
+    rpl::lifetime lifetime;
+
+    stream.fire(1);
+    stream.fire(2);
+    stream.fire(3);
+    stream.fire(4);
+
+    producer.subscribe([&](int value) { std::cout << "producer->" << (char)value << std::endl; });
+
+    std::atomic<bool> running{ true };
+    std::thread([&] {
+        while (running) {
+            stream.fire('1');
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+    }).detach();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    rpl::start_to_stream(stream2, lifetime)(std::move(producer));
+
+    auto c = rpl::start_spawning(lifetime)(std::move(producer));
+    std::cout << "c is create" << std::endl;
+    running.store(false);
+
+    stream2.events().subscribe([&](int value) { std::cout << "stream2-->" << value << std::endl; });
+    c.subscribe([&](int value) { std::cout << "c-->" << (char)value << std::endl; });
+
+    while (1) { 
+        int c = std::cin.get();
+        if (c == 'q') break;
+        if (c == 'c') { lifetime.unsubscribe();}
+        if (c == '\n') continue;
+        stream.fire(std::move(c));
+    }
+
+    return EXIT_SUCCESS;
+}
