@@ -1,6 +1,7 @@
 {
   "dependencies": [
     "rxcpp",
-    "ms-gsl"
+    "ms-gsl",
+    "qt5-base"
   ]
 }
