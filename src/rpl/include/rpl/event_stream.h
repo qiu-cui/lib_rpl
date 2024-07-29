@@ -142,7 +142,7 @@ namespace rpl {
 
 	template <typename Value>
 	auto start_to_stream(event_stream<Value>& stream, lifetime& alive_while) {
-		return [&](auto observable) {
+		return [&](auto&& observable) {
 			observable.subscribe(
 				alive_while,
 				[&](Value value) {
@@ -250,4 +250,11 @@ namespace rpl {
 		return details::start_spawning_helper(alive_while);
 	}
 
+
 } // namespace rpl
+
+// 重载操作符|，使得可以和start_spawning一起使用
+template <typename Value, typename Func>
+auto operator|(rpl::producer<Value> &&producer, Func &&func) {
+	return func(std::move(producer));
+}
