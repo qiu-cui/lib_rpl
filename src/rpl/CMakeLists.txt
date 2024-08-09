@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 # List of HPP (header) library files.
 set(${LIBRARY_TARGET_NAME}_HDR
         include/rpl/event_stream.h
+        include/rpl/producer.h
 )
 
 find_package(Microsoft.GSL CONFIG REQUIRED)

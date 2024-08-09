@@ -1,2 +1,4 @@
-add_subdirectory(CheckSumAndDiff)
-add_subdirectory(CheckSumAndDiffHeaderOnly)
+#add_subdirectory(CheckSumAndDiff)
+#add_subdirectory(CheckSumAndDiffHeaderOnly)
+
+add_subdirectory(ProducerTest)

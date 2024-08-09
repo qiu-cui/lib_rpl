@@ -1,16 +1,41 @@
 #include <rpl/event_stream.h>
 
-#include <cstdlib>
-#include <cmath>
-#include <iostream>
 #include <atomic>
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
 #include <thread>
-int main()
-{
+
+// 自定义的派生类，继承自 rxcpp::observable
+template <typename T>
+class custom_observable : public rxcpp::observable<T, rxcpp::dynamic_observable<T>> {
+   public:
+    // 使用基类的构造函数
+    using rxcpp::observable<T, rxcpp::dynamic_observable<T>>::observable;
+
+    // 添加一个新的成员函数
+    void custom_function() const { std::cout << "This is a custom function in custom_observable." << std::endl; }
+};
+
+namespace detail {
+template <typename Value = rpl::empty_value>
+using producer = custom_observable<Value>;
+}
+
+int main() {
+    rxcpp::observable<int> obs{};
+
+    // obs 监听错误
+    obs.subscribe([](int value) { std::cout << "obs-->" << value << std::endl; },
+                  [](std::exception_ptr error) {
+                      std::cout << "obs-->"
+                                << "error" << std::endl;
+                  });
+    custom_observable<int> custom_obs{};
     rpl::event_stream<int> stream;
     rpl::event_stream<int> stream2;
-
-    rpl::producer<int> producer = stream.events();
+    custom_obs = stream.events();
+    detail::producer<int> producer = stream.events();
 
     rpl::lifetime lifetime;
 
@@ -39,10 +64,10 @@ int main()
     stream2.events().subscribe([&](int value) { std::cout << "stream2-->" << value << std::endl; });
     c.subscribe([&](int value) { std::cout << "c-->" << (char)value << std::endl; });
 
-    while (1) { 
+    while (1) {
         int c = std::cin.get();
         if (c == 'q') break;
-        if (c == 'c') { lifetime.unsubscribe();}
+        if (c == 'c') { lifetime.unsubscribe(); }
         if (c == '\n') continue;
         stream.fire(std::move(c));
     }
