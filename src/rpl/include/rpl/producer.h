@@ -105,4 +105,48 @@ inline auto make_producer(Generator &&generator) -> producer<Value> {
     return producer<Value>::create(std::move(generator));
 }
 
+/*
+
+template <typename Value>
+template <typename OnNext, typename OnError, typename OnDone>
+[[nodiscard]] inline lifetime producer<Value>::start_copy(OnNext &&next, OnError &&error, OnDone &&done) const & {
+    auto result = lifetime();
+    auto copy = *this;
+    auto subscriber = rxcpp::make_subscriber<Value>(result, std::forward<OnNext>(next),
+                                                    [error = std::forward<OnError>(error)](std::exception_ptr eptr) {
+                                                        try {
+                                                            if (eptr) std::rethrow_exception(eptr);
+                                                        } catch (const std::runtime_error &e) {
+                                                            error(std::stoi(e.what()));
+                                                        } catch (...) {
+                                                            error(-1);
+                                                        }
+                                                    },
+                                                    std::forward<OnDone>(done));
+    std::move(copy).subscribe(std::move(subscriber));
+    return result;
+}
+*/
+
+/*template<class... AN>
+auto map(AN&&... an)
+    -> operator_factory<map_tag, AN...> {
+    return operator_factory<map_tag, AN...>(std::make_tuple(std::forward<AN>(an)...));
+}*/
+
+template <typename OnNext>
+inline auto start_with_next(OnNext &&next) {
+    return [&](auto &&p) {
+        p.subscribe(std::forward<OnNext>(next));
+        //using ObservableType = std::decay_t<decltype(p)>;
+        //static_assert(std::is_base_of_v<rxcpp::observable<typename ObservableType::value_type, typename ObservableType::source_type>, ObservableType>,
+        //              "p must be an rxcpp::observable");
+
+        //using ValueType = typename ObservableType::value_type;
+        //producer<ValueType> prod(std::forward<ObservableType>(p));
+        //std::move(prod).start(std::forward<OnNext>(next));
+    };
+}
+
+
 }  // namespace rpl

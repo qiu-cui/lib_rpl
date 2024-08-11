@@ -24,6 +24,16 @@ class OnDestructor {
 };
 
 int main() {
+
+    auto producer = rpl::make_producer<int>([](auto &&consumer) {
+        consumer.on_next(1);
+        consumer.on_next(2);
+        consumer.on_next(3);
+        consumer.on_completed();
+        return lifetime();
+    });
+
+    producer | rpl::start_with_next([=](int i) { std::cout << "start_with_next --> " << i << std::endl; });
     {
         // producer next, done and lifetime end test
 

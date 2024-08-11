@@ -55,7 +55,7 @@ int main() {
     }).detach();
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    rpl::start_to_stream(stream2, lifetime)(std::move(producer));
+    std::move(producer) | rpl::start_to_stream(stream2, lifetime);
 
     auto c = rpl::start_spawning(lifetime)(std::move(producer));
     std::cout << "c is create" << std::endl;
